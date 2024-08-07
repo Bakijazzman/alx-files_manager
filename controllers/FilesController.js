@@ -15,7 +15,7 @@ import { getUserFromXToken } from '../utils/auth';
 const FILE_TYPES = {
   folder: 'folder',
   file: 'file',
-  image: 'image',
+  image: 'image'
 };
 const ROOT_FOLDER_ID = 0;
 const DEFAULT_ROOT_FOLDER = 'files_manager';
@@ -32,7 +32,7 @@ const isValidId = (id) => {
   const charRanges = [
     [48, 57], // 0 - 9
     [97, 102], // a - f
-    [65, 70], // A - F
+    [65, 70] // A - F
   ];
   if (typeof id !== 'string' || id.length !== size) {
     return false;
@@ -55,8 +55,8 @@ export default class FilesController {
    * @param {Request} req The Express request object.
    * @param {Response} res The Express response object.
    */
-  static async postUpload(request, res) {
-    const { user } = req;
+  static async postUpload (request, res) {
+    const { user } = request;
     const name = request.body ? request.body.name : null;
     const type = request.body ? request.body.type : null;
     const parentId = request.body && request.body.parentId ? request.body.parentId : ROOT_FOLDER_ID;
@@ -71,7 +71,7 @@ export default class FilesController {
       res.status(400).json({ error: 'Missing type' });
       return;
     }
-    if (!req.body.data && type !== FILE_TYPES.folder) {
+    if (!request.body.data && type !== FILE_TYPES.folder) {
       res.status(400).json({ error: 'Missing data' });
       return;
     }
@@ -79,7 +79,7 @@ export default class FilesController {
       const file = await (
         await dbClient.filesCollection()
       ).findOne({
-        _id: new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID),
+        _id: new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID)
       });
 
       if (!file) {
@@ -106,7 +106,7 @@ export default class FilesController {
       parentId:
         parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString()
           ? '0'
-          : new mongoDBCore.BSON.ObjectId(parentId),
+          : new mongoDBCore.BSON.ObjectId(parentId)
     };
     await mkDirAsync(baseDir, { recursive: true });
     if (type !== FILE_TYPES.folder) {
@@ -127,11 +127,11 @@ export default class FilesController {
       name,
       type,
       isPublic,
-      parentId: parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString() ? 0 : parentId,
+      parentId: parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString() ? 0 : parentId
     });
   }
 
-  static async getShow(req, res) {
+  static async getShow (req, res) {
     const { user } = req;
     const id = req.params ? req.params.id : NULL_ID;
     const userId = user._id.toString();
@@ -139,7 +139,7 @@ export default class FilesController {
       await dbClient.filesCollection()
     ).findOne({
       _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID),
-      userId: new mongoDBCore.BSON.ObjectId(isValidId(userId) ? userId : NULL_ID),
+      userId: new mongoDBCore.BSON.ObjectId(isValidId(userId) ? userId : NULL_ID)
     });
 
     if (!file) {
@@ -152,7 +152,7 @@ export default class FilesController {
       name: file.name,
       type: file.type,
       isPublic: file.isPublic,
-      parentId: file.parentId === ROOT_FOLDER_ID.toString() ? 0 : file.parentId.toString(),
+      parentId: file.parentId === ROOT_FOLDER_ID.toString() ? 0 : file.parentId.toString()
     });
   }
 
@@ -161,7 +161,7 @@ export default class FilesController {
    * @param {Request} req The Express request object.
    * @param {Response} res The Express response object.
    */
-  static async getIndex(req, res) {
+  static async getIndex (req, res) {
     const { user } = req;
     const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
     const page = /\d+/.test((req.query.page || '').toString()) ? Number.parseInt(req.query.page, 10) : 0;
@@ -170,7 +170,7 @@ export default class FilesController {
       parentId:
         parentId === ROOT_FOLDER_ID.toString()
           ? parentId
-          : new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID),
+          : new mongoDBCore.BSON.ObjectId(isValidId(parentId) ? parentId : NULL_ID)
     };
 
     const files = await (
@@ -190,22 +190,22 @@ export default class FilesController {
             type: '$type',
             isPublic: '$isPublic',
             parentId: {
-              $cond: { if: { $eq: ['$parentId', '0'] }, then: 0, else: '$parentId' },
-            },
-          },
-        },
+              $cond: { if: { $eq: ['$parentId', '0'] }, then: 0, else: '$parentId' }
+            }
+          }
+        }
       ])
     ).toArray();
     res.status(200).json(files);
   }
 
-  static async putPublish(req, res) {
+  static async putPublish (req, res) {
     const { user } = req;
     const { id } = req.params;
     const userId = user._id.toString();
     const fileFilter = {
       _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID),
-      userId: new mongoDBCore.BSON.ObjectId(isValidId(userId) ? userId : NULL_ID),
+      userId: new mongoDBCore.BSON.ObjectId(isValidId(userId) ? userId : NULL_ID)
     };
     const file = await (await dbClient.filesCollection()).findOne(fileFilter);
 
@@ -220,17 +220,17 @@ export default class FilesController {
       name: file.name,
       type: file.type,
       isPublic: true,
-      parentId: file.parentId === ROOT_FOLDER_ID.toString() ? 0 : file.parentId.toString(),
+      parentId: file.parentId === ROOT_FOLDER_ID.toString() ? 0 : file.parentId.toString()
     });
   }
 
-  static async putUnpublish(req, res) {
+  static async putUnpublish (req, res) {
     const { user } = req;
     const { id } = req.params;
     const userId = user._id.toString();
     const fileFilter = {
       _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID),
-      userId: new mongoDBCore.BSON.ObjectId(isValidId(userId) ? userId : NULL_ID),
+      userId: new mongoDBCore.BSON.ObjectId(isValidId(userId) ? userId : NULL_ID)
     };
     const file = await (await dbClient.filesCollection()).findOne(fileFilter);
 
@@ -245,7 +245,7 @@ export default class FilesController {
       name: file.name,
       type: file.type,
       isPublic: false,
-      parentId: file.parentId === ROOT_FOLDER_ID.toString() ? 0 : file.parentId.toString(),
+      parentId: file.parentId === ROOT_FOLDER_ID.toString() ? 0 : file.parentId.toString()
     });
   }
 
@@ -254,13 +254,13 @@ export default class FilesController {
    * @param {Request} req The Express request object.
    * @param {Response} res The Express response object.
    */
-  static async getFile(req, res) {
+  static async getFile (req, res) {
     const user = await getUserFromXToken(req);
     const { id } = req.params;
     const size = req.query.size || null;
     const userId = user ? user._id.toString() : '';
     const fileFilter = {
-      _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID),
+      _id: new mongoDBCore.BSON.ObjectId(isValidId(id) ? id : NULL_ID)
     };
     const file = await (await dbClient.filesCollection()).findOne(fileFilter);
 
